@@ -403,16 +403,40 @@
         </div>
     </div>
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('checklists', this)">Checklists</button>
+        <button class="tab-btn active" onclick="switchTab('reservations', this)">Reservations</button>
+        <button class="tab-btn" onclick="switchTab('checklists', this)">Checklists</button>
         <button class="tab-btn" onclick="switchTab('projects', this)">Projects</button>
         <button class="tab-btn" onclick="switchTab('maintenance', this)">Maintenance</button>
         <button class="tab-btn" onclick="switchTab('contacts', this)">Contacts</button>
     </div>
 </div>
 
-<!-- ════════════════════════════════ CHECKLISTS ════════════════════════════════ -->
+<!-- ════════════════════════════════ RESERVATIONS ════════════════════════════════ -->
 <div class="container">
-<div class="tab-panel active" id="panel-checklists">
+<div class="tab-panel active" id="panel-reservations">
+
+    <div class="card" style="text-align:center;padding:20px 16px 14px;">
+        <div style="font-size:28px;margin-bottom:4px;">🏖</div>
+        <div style="font-size:17px;font-weight:700;color:#1a6b8a;">523 Defuniak St</div>
+        <div style="font-size:13px;color:#888;margin-bottom:14px;">Santa Rosa Beach, FL · Upcoming 90 Days</div>
+        <div class="filter-row" style="justify-content:center;">
+            <button class="filter-btn active" onclick="filterReservations('All',this)">All</button>
+            <button class="filter-btn" onclick="filterReservations('Upstairs',this)">⬆ Upstairs</button>
+            <button class="filter-btn" onclick="filterReservations('Downstairs',this)">⬇ Downstairs</button>
+        </div>
+    </div>
+
+    <div id="reservationList"><div class="empty-state" style="padding:40px 0;">Loading reservations...</div></div>
+
+    <div style="text-align:center;margin-top:4px;margin-bottom:16px;display:flex;gap:8px;justify-content:center;">
+        <a id="calUpstairs2" href="#" target="_blank" class="add-toggle" style="text-decoration:none;display:inline-block;width:auto;padding:10px 18px;font-size:13px;">⬆ Add to Upstairs Calendar</a>
+        <a id="calDownstairs2" href="#" target="_blank" class="add-toggle" style="text-decoration:none;display:inline-block;width:auto;padding:10px 18px;font-size:13px;">⬇ Add to Downstairs Calendar</a>
+    </div>
+
+</div>
+
+<!-- ════════════════════════════════ CHECKLISTS ════════════════════════════════ -->
+<div class="tab-panel" id="panel-checklists">
 
     <div class="card">
         <div class="card-title">Checklist</div>
@@ -975,9 +999,82 @@ function renderContacts(rows) {
 // ══════════════════════════════════════════════
 function loadAllData() {
     loadChecklist();
+    loadReservations();
     loadProjects();
     loadMaintenance();
     loadContacts();
+}
+
+// ══════════════════════════════════════════════
+//  RESERVATIONS
+// ══════════════════════════════════════════════
+let allReservations = [];
+
+async function loadReservations() {
+    try {
+        const res  = await fetch(SCRIPT_URL + '?action=getEvents');
+        const data = await res.json();
+        allReservations = data.events || [];
+        // sync calendar links to reservation tab buttons
+        document.getElementById('calUpstairs2').href   = localStorage.getItem('bh_cal_up')   || '#';
+        document.getElementById('calDownstairs2').href = localStorage.getItem('bh_cal_down') || '#';
+        renderReservations('All');
+    } catch(e) {
+        document.getElementById('reservationList').innerHTML = '<div class="empty-state">Could not load reservations. Check your connection.</div>';
+    }
+}
+
+function filterReservations(value, btn) {
+    document.querySelectorAll('#panel-reservations .filter-btn').forEach(b => {
+        b.classList.remove('active','active-up','active-down');
+    });
+    const cls = value === 'All' ? 'active' : value === 'Upstairs' ? 'active-up' : 'active-down';
+    btn.classList.add(cls);
+    renderReservations(value);
+}
+
+function renderReservations(filter) {
+    const list   = document.getElementById('reservationList');
+    const events = allReservations.filter(e => filter === 'All' || e.floor === filter);
+
+    if (events.length === 0) {
+        list.innerHTML = '<div class="empty-state" style="padding:40px 0;">No upcoming reservations.</div>';
+        return;
+    }
+
+    list.innerHTML = events.map(event => {
+        const start    = new Date(event.start);
+        const end      = new Date(event.end);
+        // All-day events: Google sets end to midnight of next day, back it up 1 day
+        if (event.allDay) end.setDate(end.getDate() - 1);
+
+        const fmt = d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const sameDay = start.toDateString() === end.toDateString();
+        const dateStr = sameDay ? fmt(start) : `${fmt(start)} – ${fmt(end)}`;
+
+        const isUp        = event.floor === 'Upstairs';
+        const borderColor = isUp ? '#c8861a' : '#c05020';
+        const floorBadge  = isUp
+            ? '<span class="badge badge-upstairs">⬆ Upstairs</span>'
+            : '<span class="badge badge-downstairs">⬇ Downstairs</span>';
+
+        // Days away
+        const today    = new Date(); today.setHours(0,0,0,0);
+        const startDay = new Date(start); startDay.setHours(0,0,0,0);
+        const daysAway = Math.round((startDay - today) / 86400000);
+        const daysLabel = daysAway === 0 ? '<span style="color:#2e8b57;font-weight:700;">Today!</span>'
+                        : daysAway === 1 ? '<span style="color:#c8861a;font-weight:700;">Tomorrow</span>'
+                        : `<span style="color:#aaa;">In ${daysAway} days</span>`;
+
+        return `
+            <div class="list-item" style="border-left-color:${borderColor}">
+                <div class="list-item-title">${event.title || 'Reserved'} ${floorBadge}</div>
+                <div class="list-item-meta">
+                    📅 ${dateStr}<br>
+                    ${daysLabel}
+                </div>
+            </div>`;
+    }).join('');
 }
 
 async function fetchSheet(tabName) {
