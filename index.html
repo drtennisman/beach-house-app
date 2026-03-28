@@ -374,25 +374,6 @@
 </head>
 <body>
 
-<!-- Setup Modal -->
-<div class="modal-overlay" id="setupModal">
-    <div class="modal">
-        <h2>Welcome to Beach House</h2>
-        <p>Paste your Google Apps Script URL, Sheet ID, and both calendar links below. You only need to do this once.</p>
-        <label>Apps Script URL</label>
-        <input type="url" id="setupUrl" placeholder="https://script.google.com/macros/s/..." />
-        <label style="margin-top:10px;">Google Sheet ID</label>
-        <input type="text" id="setupSheetId" placeholder="Paste your Sheet ID here" />
-        <label style="margin-top:10px;">⬆ Upstairs Calendar Link</label>
-        <input type="url" id="setupCalUp" placeholder="https://calendar.google.com/..." />
-        <label style="margin-top:10px;">⬇ Downstairs Calendar Link</label>
-        <input type="url" id="setupCalDown" placeholder="https://calendar.google.com/..." />
-        <label style="margin-top:10px;">📸 Shared Photos Album Link</label>
-        <input type="url" id="setupPhotos" placeholder="https://photos.google.com/..." />
-        <button class="btn btn-primary" onclick="saveSetup()">Save & Continue</button>
-    </div>
-</div>
-
 <!-- Share Modal -->
 <div class="modal-overlay" id="shareModal">
     <div class="modal">
@@ -611,41 +592,18 @@
 // ══════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════
-document.getElementById('calUpstairs').href   = localStorage.getItem('bh_cal_up')     || '#';
-document.getElementById('calDownstairs').href = localStorage.getItem('bh_cal_down')   || '#';
-document.getElementById('photosLink').href    = localStorage.getItem('bh_photos')     || '#';
-document.getElementById('sheetLink').href     = getSheetId() ? `https://docs.google.com/spreadsheets/d/${getSheetId()}/edit` : '#';
+document.getElementById('calUpstairs').href   = localStorage.getItem('bh_cal_up')   || '#';
+document.getElementById('calDownstairs').href = localStorage.getItem('bh_cal_down') || '#';
+document.getElementById('photosLink').href    = localStorage.getItem('bh_photos')   || '#';
+document.getElementById('sheetLink').href     = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
 
-function getScriptUrl() { return localStorage.getItem('bh_script_url') || ''; }
-function getSheetId()   { return localStorage.getItem('bh_sheet_id') || ''; }
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNvF56ycMIjri519TnSCeviC_aiSx3Zr7pXrvJLMstKb0SfPWfuFylk1DSTte4_XuN7A/exec';
+const SHEET_ID   = '1jc6Jxsel-KPzoPdlcxd0GjX4S-yTc-bL16wk4ZBOqAM';
 
-window.addEventListener('load', () => {
-    if (!getScriptUrl() || !getSheetId()) {
-        document.getElementById('setupModal').classList.add('open');
-    } else {
-        loadAllData();
-    }
-});
+function getScriptUrl() { return SCRIPT_URL; }
+function getSheetId()   { return SHEET_ID; }
 
-function saveSetup() {
-    const url     = document.getElementById('setupUrl').value.trim();
-    const id      = document.getElementById('setupSheetId').value.trim();
-    const calUp   = document.getElementById('setupCalUp').value.trim();
-    const calDown = document.getElementById('setupCalDown').value.trim();
-    if (!url || !id) { alert('Please fill in the Apps Script URL and Sheet ID.'); return; }
-    localStorage.setItem('bh_script_url', url);
-    localStorage.setItem('bh_sheet_id', id);
-    const photos = document.getElementById('setupPhotos').value.trim();
-    if (calUp)   localStorage.setItem('bh_cal_up', calUp);
-    if (calDown) localStorage.setItem('bh_cal_down', calDown);
-    if (photos)  localStorage.setItem('bh_photos', photos);
-    document.getElementById('calUpstairs').href   = calUp   || '#';
-    document.getElementById('calDownstairs').href = calDown || '#';
-    document.getElementById('photosLink').href    = photos  || '#';
-    document.getElementById('sheetLink').href     = `https://docs.google.com/spreadsheets/d/${id}/edit`;
-    document.getElementById('setupModal').classList.remove('open');
-    loadAllData();
-}
+window.addEventListener('load', () => { loadAllData(); });
 
 // ══════════════════════════════════════════════
 //  TABS
