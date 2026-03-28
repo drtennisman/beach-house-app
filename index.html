@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a6b8a">
+    <title>Beach House</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f4f7;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: linear-gradient(180deg, #1e7fa0 0%, #1a6b8a 100%);
+            color: white;
+            padding: 16px 20px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .header .subtitle {
+            font-size: 11px;
+            opacity: 0.65;
+            margin-top: 2px;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .calendar-btns { display: flex; gap: 6px; }
+        .calendar-btn {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: white;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .calendar-btn:hover { background: rgba(255,255,255,0.28); }
+
+        /* ── TABS ── */
+        .tab-bar {
+            display: flex;
+            background: #1a6b8a;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 4px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.55);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .tab-btn.active { color: white; border-bottom-color: #f0c040; }
+
+        /* ── CONTENT ── */
+        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── CARDS ── */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a6b8a;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+        }
+
+        /* ── FORMS ── */
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 4px;
+            margin-top: 10px;
+        }
+        label:first-child { margin-top: 0; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            background: #fafafa;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1a6b8a;
+            background: white;
+        }
+        textarea { resize: vertical; min-height: 70px; }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 14px;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.88; }
+        .btn-primary { background: #1a6b8a; color: white; }
+        .btn-success { background: #2e8b57; color: white; }
+
+        /* ── FLOOR PILLS (form row) ── */
+        .floor-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .floor-pill {
+            flex: 1;
+            padding: 9px 4px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            color: #888;
+            transition: all 0.15s;
+        }
+        .floor-pill.selected-upstairs   { border-color: #c8861a; background: #fff5e0; color: #7a5200; }
+        .floor-pill.selected-downstairs { border-color: #c05020; background: #fdeee8; color: #7a2800; }
+        .floor-pill.selected-both       { border-color: #2e8b57; background: #e8f5ee; color: #1a5c38; }
+
+        /* ── FLOOR BADGES (list items) ── */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-pending    { background: #fff3cd; color: #856404; }
+        .badge-approved   { background: #cce5ff; color: #004085; }
+        .badge-complete   { background: #d4edda; color: #155724; }
+        .badge-upstairs   { background: #fff5e0; color: #7a5200; }
+        .badge-downstairs { background: #fdeee8; color: #7a2800; }
+        .badge-both       { background: #e8f5ee; color: #1a5c38; }
+        .badge-needs      { background: #fde8e8; color: #8b0000; }
+        .badge-inprogress { background: #cce5ff; color: #004085; }
+        .badge-resolved   { background: #d4edda; color: #155724; }
+
+        /* ── FILTER PILLS ── */
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 5px 12px;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            background: white;
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .filter-btn.active         { background: #1a6b8a; border-color: #1a6b8a; color: white; }
+        .filter-btn.active-up      { background: #c8861a; border-color: #c8861a; color: white; }
+        .filter-btn.active-down    { background: #c05020; border-color: #c05020; color: white; }
+        .filter-btn.active-both    { background: #2e8b57; border-color: #2e8b57; color: white; }
+
+        /* ── CHECKLIST ── */
+        .checklist-items { margin: 12px 0; }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            accent-color: #1a6b8a;
+        }
+        .checklist-item label {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 400;
+            color: #333;
+            cursor: pointer;
+            flex: 1;
+        }
+        .checklist-item.checked label { text-decoration: line-through; color: #aaa; }
+        .progress-bar-wrap {
+            background: #e8f0f4;
+            border-radius: 20px;
+            height: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #1a6b8a;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+        .progress-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+
+        /* ── LISTS ── */
+        .item-list { margin-top: 6px; }
+        .list-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #1a6b8a;
+        }
+        .list-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        .list-item-meta { font-size: 12px; color: #777; line-height: 1.7; }
+
+        /* ── CONTACTS ── */
+        .contact-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: #1a6b8a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .contact-name { font-size: 15px; font-weight: 600; }
+        .contact-role { font-size: 12px; color: #888; margin-bottom: 4px; }
+        .contact-links { display: flex; gap: 8px; flex-wrap: wrap; }
+        .contact-link { font-size: 12px; color: #1a6b8a; text-decoration: none; font-weight: 600; }
+
+        /* ── COLLAPSIBLE ADD FORM ── */
+        .add-toggle {
+            width: 100%;
+            padding: 11px;
+            background: #e8f4f8;
+            border: 1px dashed #1a6b8a;
+            border-radius: 10px;
+            color: #1a6b8a;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .add-form { display: none; }
+        .add-form.open { display: block; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a6b8a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            z-index: 999;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ── SETUP MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 480px;
+        }
+        .modal h2 { font-size: 18px; margin-bottom: 8px; color: #1a6b8a; }
+        .modal p { font-size: 14px; color: #555; margin-bottom: 16px; line-height: 1.5; }
+
+        .empty-state { text-align: center; color: #aaa; font-size: 14px; padding: 24px 0; }
+        .section-divider {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            margin: 16px 0 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Setup Modal -->
+<div class="modal-overlay" id="setupModal">
+    <div class="modal">
+        <h2>Welcome to Beach House</h2>
+        <p>Paste your Google Apps Script URL, Sheet ID, and both calendar links below. You only need to do this once.</p>
+        <label>Apps Script URL</label>
+        <input type="url" id="setupUrl" placeholder="https://script.google.com/macros/s/..." />
+        <label style="margin-top:10px;">Google Sheet ID</label>
+        <input type="text" id="setupSheetId" placeholder="Paste your Sheet ID here" />
+        <label style="margin-top:10px;">⬆ Upstairs Calendar Link</label>
+        <input type="url" id="setupCalUp" placeholder="https://calendar.google.com/..." />
+        <label style="margin-top:10px;">⬇ Downstairs Calendar Link</label>
+        <input type="url" id="setupCalDown" placeholder="https://calendar.google.com/..." />
+        <label style="margin-top:10px;">📸 Shared Photos Album Link</label>
+        <input type="url" id="setupPhotos" placeholder="https://photos.google.com/..." />
+        <button class="btn btn-primary" onclick="saveSetup()">Save & Continue</button>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="shareModal">
+    <div class="modal">
+        <h2>✉️ Share Spreadsheet</h2>
+        <p>Enter an email address and we'll open your mail app with the sheet link ready to send.</p>
+        <label>Email Address</label>
+        <input type="email" id="shareEmail" placeholder="grandma@email.com" />
+        <button class="btn btn-primary" onclick="sendSheetLink()">Open in Mail App</button>
+        <button class="btn" style="background:#eee;color:#555;margin-top:8px;" onclick="closeShareModal()">Cancel</button>
+    </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-top">
+        <div>
+            <h1>🏖 Beach House</h1>
+            <div class="subtitle">Freeman Family</div>
+        </div>
+        <div class="calendar-btns">
+            <a id="calUpstairs" href="#" target="_blank" class="calendar-btn">⬆ Cal</a>
+            <a id="calDownstairs" href="#" target="_blank" class="calendar-btn">⬇ Cal</a>
+            <a id="photosLink" href="#" target="_blank" class="calendar-btn">📸</a>
+            <a id="sheetLink" href="#" target="_blank" class="calendar-btn">📊</a>
+            <button class="calendar-btn" onclick="openShareModal()">✉️</button>
+        </div>
+    </div>
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('checklists', this)">Checklists</button>
+        <button class="tab-btn" onclick="switchTab('projects', this)">Projects</button>
+        <button class="tab-btn" onclick="switchTab('maintenance', this)">Maintenance</button>
+        <button class="tab-btn" onclick="switchTab('contacts', this)">Contacts</button>
+    </div>
+</div>
+
+<!-- ════════════════════════════════ CHECKLISTS ════════════════════════════════ -->
+<div class="container">
+<div class="tab-panel active" id="panel-checklists">
+
+    <div class="card">
+        <div class="card-title">Checklist</div>
+
+        <label>Floor</label>
+        <div class="floor-row" id="checklistFloorRow">
+            <div class="floor-pill" onclick="selectFloor('checklist','Upstairs',this)">⬆ Upstairs</div>
+            <div class="floor-pill" onclick="selectFloor('checklist','Downstairs',this)">⬇ Downstairs</div>
+        </div>
+        <input type="hidden" id="checklistFloor" value="" />
+
+        <label style="margin-top:14px;">Type</label>
+        <select id="checklistType" onchange="loadChecklist()">
+            <option value="departure">Departure</option>
+            <option value="arrival">Arrival</option>
+            <option value="deep_clean">Deep Clean</option>
+        </select>
+
+        <label>Your Name</label>
+        <input type="text" id="checklistName" placeholder="Enter your name" />
+
+        <div class="progress-label" id="progressLabel" style="margin-top:12px;">0 of 0 complete</div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+
+        <div class="checklist-items" id="checklistItems"></div>
+
+        <button class="btn btn-success" onclick="submitChecklist()">Submit Checklist</button>
+    </div>
+
+</div>
+
+<!-- ════════════════════════════════ PROJECTS ════════════════════════════════ -->
+<div class="tab-panel" id="panel-projects">
+
+    <button class="add-toggle" id="projToggleBtn" onclick="toggleForm('projectForm', this, '+ Add Project / Quote')">+ Add Project / Quote</button>
+
+    <div class="add-form" id="projectForm">
+        <div class="card">
+            <div class="card-title">New Project</div>
+            <label>Floor</label>
+            <div class="floor-row" id="projFloorRow">
+                <div class="floor-pill" onclick="selectFloor('proj','Upstairs',this)">⬆ Upstairs</div>
+                <div class="floor-pill" onclick="selectFloor('proj','Downstairs',this)">⬇ Downstairs</div>
+                <div class="floor-pill" onclick="selectFloor('proj','Both',this)">↕ Both</div>
+            </div>
+            <input type="hidden" id="projFloor" value="" />
+            <label>Project Title</label>
+            <input type="text" id="projTitle" placeholder="e.g. Replace spiral staircase" />
+            <label>Description</label>
+            <textarea id="projDesc" placeholder="Details about the project..."></textarea>
+            <label>Contractor / Vendor</label>
+            <input type="text" id="projContractor" placeholder="Name or company" />
+            <label>Phone</label>
+            <input type="tel" id="projPhone" placeholder="(555) 555-5555" />
+            <label>Quote Amount</label>
+            <input type="text" id="projQuote" placeholder="$0.00" />
+            <label>Status</label>
+            <select id="projStatus">
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Complete">Complete</option>
+            </select>
+            <label>Notes</label>
+            <textarea id="projNotes" placeholder="Any additional notes..."></textarea>
+            <button class="btn btn-primary" onclick="submitProject()">Save Project</button>
+        </div>
+    </div>
+
+    <div class="section-divider">Existing Projects</div>
+    <div class="filter-row" id="projFilterRow">
+        <button class="filter-btn active" onclick="filterList('proj','All',this)">All</button>
+        <button class="filter-btn" onclick="filterList('proj','Upstairs',this)">⬆ Upstairs</button>
+        <button class="filter-btn" onclick="filterList('proj','Downstairs',this)">⬇ Downstairs</button>
+        <button class="filter-btn" onclick="filterList('proj','Both',this)">↕ Both</button>
+    </div>
+    <div class="item-list" id="projectList">
+        <div class="empty-state">Loading projects...</div>
+    </div>
+
+</div>
+
+<!-- ════════════════════════════════ MAINTENANCE ════════════════════════════════ -->
+<div class="tab-panel" id="panel-maintenance">
+
+    <button class="add-toggle" id="maintToggleBtn" onclick="toggleForm('maintenanceForm', this, '+ Log Maintenance Issue')">+ Log Maintenance Issue</button>
+
+    <div class="add-form" id="maintenanceForm">
+        <div class="card">
+            <div class="card-title">New Maintenance Entry</div>
+            <label>Floor</label>
+            <div class="floor-row" id="maintFloorRow">
+                <div class="floor-pill" onclick="selectFloor('maint','Upstairs',this)">⬆ Upstairs</div>
+                <div class="floor-pill" onclick="selectFloor('maint','Downstairs',this)">⬇ Downstairs</div>
+                <div class="floor-pill" onclick="selectFloor('maint','Both',this)">↕ Both</div>
+            </div>
+            <input type="hidden" id="maintFloor" value="" />
+            <label>Issue</label>
+            <input type="text" id="maintIssue" placeholder="e.g. AC not cooling properly" />
+            <label>Location in House</label>
+            <input type="text" id="maintLocation" placeholder="e.g. Master bedroom, Kitchen" />
+            <label>Fixed By</label>
+            <input type="text" id="maintFixedBy" placeholder="Name or contractor" />
+            <label>Cost</label>
+            <input type="text" id="maintCost" placeholder="$0.00 (leave blank if unknown)" />
+            <label>Notes</label>
+            <textarea id="maintNotes" placeholder="Any details..."></textarea>
+            <label>Status</label>
+            <select id="maintStatus">
+                <option value="Needs Attention">Needs Attention</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+            </select>
+            <button class="btn btn-primary" onclick="submitMaintenance()">Save Entry</button>
+        </div>
+    </div>
+
+    <div class="section-divider">Maintenance History</div>
+    <div class="filter-row" id="maintFilterRow">
+        <button class="filter-btn active" onclick="filterList('maint','All',this)">All</button>
+        <button class="filter-btn" onclick="filterList('maint','Upstairs',this)">⬆ Upstairs</button>
+        <button class="filter-btn" onclick="filterList('maint','Downstairs',this)">⬇ Downstairs</button>
+        <button class="filter-btn" onclick="filterList('maint','Both',this)">↕ Both</button>
+    </div>
+    <div class="item-list" id="maintenanceList">
+        <div class="empty-state">Loading history...</div>
+    </div>
+
+</div>
+
+<!-- ════════════════════════════════ CONTACTS ════════════════════════════════ -->
+<div class="tab-panel" id="panel-contacts">
+
+    <button class="add-toggle" id="contactToggleBtn" onclick="toggleForm('contactForm', this, '+ Add Contact')">+ Add Contact</button>
+
+    <div class="add-form" id="contactForm">
+        <div class="card">
+            <div class="card-title">New Contact</div>
+            <label>Floor</label>
+            <div class="floor-row" id="contactFloorRow">
+                <div class="floor-pill" onclick="selectFloor('contact','Upstairs',this)">⬆ Upstairs</div>
+                <div class="floor-pill" onclick="selectFloor('contact','Downstairs',this)">⬇ Downstairs</div>
+                <div class="floor-pill" onclick="selectFloor('contact','Shared',this)">↕ Shared</div>
+            </div>
+            <input type="hidden" id="contactFloor" value="" />
+            <label>Name</label>
+            <input type="text" id="contactName" placeholder="Full name" />
+            <label>Role / Category</label>
+            <input type="text" id="contactRole" placeholder="e.g. Plumber, Neighbor, HVAC" />
+            <label>Phone</label>
+            <input type="tel" id="contactPhone" placeholder="(555) 555-5555" />
+            <label>Email</label>
+            <input type="email" id="contactEmail" placeholder="email@example.com" />
+            <label>Notes</label>
+            <textarea id="contactNotes" placeholder="Any details..."></textarea>
+            <button class="btn btn-primary" onclick="submitContact()">Save Contact</button>
+        </div>
+    </div>
+
+    <div class="section-divider">Contacts</div>
+    <div class="filter-row" id="contactFilterRow">
+        <button class="filter-btn active" onclick="filterList('contact','All',this)">All</button>
+        <button class="filter-btn" onclick="filterList('contact','Upstairs',this)">⬆ Upstairs</button>
+        <button class="filter-btn" onclick="filterList('contact','Downstairs',this)">⬇ Downstairs</button>
+        <button class="filter-btn" onclick="filterList('contact','Shared',this)">↕ Shared</button>
+    </div>
+    <div id="contactList">
+        <div class="empty-state">Loading contacts...</div>
+    </div>
+
+</div>
+</div><!-- /container -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+document.getElementById('calUpstairs').href   = localStorage.getItem('bh_cal_up')     || '#';
+document.getElementById('calDownstairs').href = localStorage.getItem('bh_cal_down')   || '#';
+document.getElementById('photosLink').href    = localStorage.getItem('bh_photos')     || '#';
+document.getElementById('sheetLink').href     = getSheetId() ? `https://docs.google.com/spreadsheets/d/${getSheetId()}/edit` : '#';
+
+function getScriptUrl() { return localStorage.getItem('bh_script_url') || ''; }
+function getSheetId()   { return localStorage.getItem('bh_sheet_id') || ''; }
+
+window.addEventListener('load', () => {
+    if (!getScriptUrl() || !getSheetId()) {
+        document.getElementById('setupModal').classList.add('open');
+    } else {
+        loadAllData();
+    }
+});
+
+function saveSetup() {
+    const url     = document.getElementById('setupUrl').value.trim();
+    const id      = document.getElementById('setupSheetId').value.trim();
+    const calUp   = document.getElementById('setupCalUp').value.trim();
+    const calDown = document.getElementById('setupCalDown').value.trim();
+    if (!url || !id) { alert('Please fill in the Apps Script URL and Sheet ID.'); return; }
+    localStorage.setItem('bh_script_url', url);
+    localStorage.setItem('bh_sheet_id', id);
+    const photos = document.getElementById('setupPhotos').value.trim();
+    if (calUp)   localStorage.setItem('bh_cal_up', calUp);
+    if (calDown) localStorage.setItem('bh_cal_down', calDown);
+    if (photos)  localStorage.setItem('bh_photos', photos);
+    document.getElementById('calUpstairs').href   = calUp   || '#';
+    document.getElementById('calDownstairs').href = calDown || '#';
+    document.getElementById('photosLink').href    = photos  || '#';
+    document.getElementById('sheetLink').href     = `https://docs.google.com/spreadsheets/d/${id}/edit`;
+    document.getElementById('setupModal').classList.remove('open');
+    loadAllData();
+}
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  FLOOR SELECTOR
+// ══════════════════════════════════════════════
+function selectFloor(prefix, value, el) {
+    const row = el.parentElement;
+    row.querySelectorAll('.floor-pill').forEach(p => {
+        p.classList.remove('selected-upstairs','selected-downstairs','selected-both');
+    });
+    const cls = value === 'Upstairs' ? 'selected-upstairs'
+              : value === 'Downstairs' ? 'selected-downstairs'
+              : 'selected-both';
+    el.classList.add(cls);
+    document.getElementById(prefix + 'Floor').value = value;
+}
+
+// ══════════════════════════════════════════════
+//  COLLAPSIBLE FORMS
+// ══════════════════════════════════════════════
+function toggleForm(id, btn, originalLabel) {
+    const form = document.getElementById(id);
+    const open = form.classList.toggle('open');
+    btn.textContent = open ? '✕ Cancel' : originalLabel;
+}
+
+// ══════════════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════════════
+const activeFilters = { proj: 'All', maint: 'All', contact: 'All' };
+let cachedData = { proj: null, maint: null, contact: null };
+
+function filterList(prefix, value, btn) {
+    activeFilters[prefix] = value;
+    const row = btn.parentElement;
+    row.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('active','active-up','active-down','active-both');
+    });
+    const cls = value === 'All' ? 'active'
+              : value === 'Upstairs' ? 'active-up'
+              : value === 'Downstairs' ? 'active-down'
+              : 'active-both';
+    btn.classList.add(cls);
+
+    if (prefix === 'proj')    renderProjects(cachedData.proj);
+    if (prefix === 'maint')   renderMaintenance(cachedData.maint);
+    if (prefix === 'contact') renderContacts(cachedData.contact);
+}
+
+function floorBadge(floor) {
+    if (!floor) return '';
+    const cls = floor === 'Upstairs' ? 'badge-upstairs'
+              : floor === 'Downstairs' ? 'badge-downstairs'
+              : 'badge-both';
+    const label = floor === 'Both' ? '↕ Both'
+                : floor === 'Upstairs' ? '⬆ Upstairs'
+                : floor === 'Shared' ? '↕ Shared'
+                : '⬇ Downstairs';
+    return `<span class="badge ${cls}">${label}</span>`;
+}
+
+// ══════════════════════════════════════════════
+//  CHECKLISTS
+// ══════════════════════════════════════════════
+const CHECKLISTS = {
+    departure: [
+        'Lock all doors and windows',
+        'Turn off all lights',
+        'Turn off all ceiling fans',
+        'Set AC to 78°F (or off if leaving long-term)',
+        'Empty all trash cans and take out to bins',
+        'Clean dishes / run and empty dishwasher',
+        'Wipe down counters and stovetop',
+        'Clear refrigerator of perishables',
+        'Strip beds and start laundry (or bag linens)',
+        'Wipe down all bathrooms',
+        'Close all blinds and curtains',
+        'Turn off outdoor grill and cover it',
+        'Check all appliances are off',
+        'Lock outdoor storage',
+        'Rinse and store outdoor furniture cushions',
+        'Do a final walkthrough of every room',
+    ],
+    arrival: [
+        'Check for any damage or issues — note anything unusual',
+        'Turn on water heater',
+        'Set AC to comfortable temperature',
+        'Check that all appliances work',
+        'Check toilet paper, paper towels, and soap supply',
+        'Check outdoor furniture condition',
+        'Sweep or mop floors if needed',
+        'Check outdoor grill is clean and ready',
+    ],
+    deep_clean: [
+        'Wash all bed linens and towels',
+        'Clean all bathrooms thoroughly',
+        'Mop all floors',
+        'Wipe down all kitchen appliances (inside and out)',
+        'Clean refrigerator inside and out',
+        'Wipe down all cabinets and surfaces',
+        'Clean windows and sliding glass doors',
+        'Vacuum all rugs and carpets',
+        'Dust all ceiling fans',
+        'Clean outdoor furniture',
+        'Check for any maintenance issues and log them',
+        'Restock supplies (cleaning products, paper goods)',
+    ]
+};
+
+function loadChecklist() {
+    const type = document.getElementById('checklistType').value;
+    const items = CHECKLISTS[type];
+    const container = document.getElementById('checklistItems');
+    container.innerHTML = '';
+    items.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'checklist-item';
+        div.innerHTML = `
+            <input type="checkbox" id="chk-${i}" onchange="updateProgress()">
+            <label for="chk-${i}">${item}</label>
+        `;
+        container.appendChild(div);
+    });
+    updateProgress();
+}
+
+function updateProgress() {
+    const type = document.getElementById('checklistType').value;
+    const total = CHECKLISTS[type].length;
+    const checked = document.querySelectorAll('#checklistItems input[type=checkbox]:checked').length;
+    document.getElementById('progressLabel').textContent = `${checked} of ${total} complete`;
+    document.getElementById('progressBar').style.width = total ? (checked / total * 100) + '%' : '0%';
+    document.querySelectorAll('.checklist-item').forEach((div, i) => {
+        const cb = document.getElementById('chk-' + i);
+        div.classList.toggle('checked', cb && cb.checked);
+    });
+}
+
+async function submitChecklist() {
+    const name  = document.getElementById('checklistName').value.trim();
+    const floor = document.getElementById('checklistFloor').value;
+    const type  = document.getElementById('checklistType').value;
+    if (!name)  { alert('Please enter your name before submitting.'); return; }
+    if (!floor) { alert('Please select a floor (Upstairs or Downstairs).'); return; }
+
+    const items = CHECKLISTS[type];
+    const completed = [], missed = [];
+    items.forEach((item, i) => {
+        const cb = document.getElementById('chk-' + i);
+        (cb && cb.checked ? completed : missed).push(item);
+    });
+
+    if (completed.length === 0) { alert('Please check off at least one item.'); return; }
+    if (missed.length > 0 && !window.confirm(`You have ${missed.length} unchecked item(s). Submit anyway?`)) return;
+
+    await postData({
+        action: 'checklist',
+        floor,
+        type,
+        person: name,
+        completed: completed.join(' | '),
+        missed: missed.join(' | '),
+        date: new Date().toLocaleDateString('en-US'),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    });
+
+    showToast('Checklist submitted!');
+    loadChecklist();
+    document.getElementById('checklistName').value = '';
+    document.getElementById('checklistFloor').value = '';
+    document.getElementById('checklistFloorRow').querySelectorAll('.floor-pill').forEach(p => {
+        p.classList.remove('selected-upstairs','selected-downstairs','selected-both');
+    });
+}
+
+// ══════════════════════════════════════════════
+//  PROJECTS
+// ══════════════════════════════════════════════
+async function submitProject() {
+    const title = document.getElementById('projTitle').value.trim();
+    const floor = document.getElementById('projFloor').value;
+    if (!title) { alert('Please enter a project title.'); return; }
+    if (!floor) { alert('Please select a floor.'); return; }
+
+    await postData({
+        action: 'project',
+        floor,
+        date: new Date().toLocaleDateString('en-US'),
+        title,
+        description: document.getElementById('projDesc').value.trim(),
+        contractor:  document.getElementById('projContractor').value.trim(),
+        phone:       document.getElementById('projPhone').value.trim(),
+        quote:       document.getElementById('projQuote').value.trim(),
+        status:      document.getElementById('projStatus').value,
+        notes:       document.getElementById('projNotes').value.trim()
+    });
+
+    showToast('Project saved!');
+    clearForm(['projTitle','projDesc','projContractor','projPhone','projQuote','projNotes']);
+    document.getElementById('projStatus').value = 'Pending';
+    document.getElementById('projFloor').value = '';
+    document.getElementById('projFloorRow').querySelectorAll('.floor-pill').forEach(p => {
+        p.classList.remove('selected-upstairs','selected-downstairs','selected-both');
+    });
+    toggleForm('projectForm', document.getElementById('projToggleBtn'), '+ Add Project / Quote');
+    loadProjects();
+}
+
+function renderProjects(rows) {
+    cachedData.proj = rows;
+    const list = document.getElementById('projectList');
+    if (!rows || rows.length <= 1) { list.innerHTML = '<div class="empty-state">No projects yet.</div>'; return; }
+    const filter = activeFilters.proj;
+    let html = '';
+    for (let i = 1; i < rows.length; i++) {
+        const [date, floor, title, desc, contractor, phone, quote, status, notes] = rows[i];
+        if (!title) continue;
+        if (filter !== 'All' && floor !== filter) continue;
+        const statusBadgeClass = status === 'Complete' ? 'badge-complete' : status === 'Approved' ? 'badge-approved' : 'badge-pending';
+        const borderColor = status === 'Complete' ? '#2e8b57' : status === 'Approved' ? '#1a6b8a' : '#f0a500';
+        html += `
+            <div class="list-item" style="border-left-color:${borderColor}">
+                <div class="list-item-title">
+                    ${title}
+                    <span class="badge ${statusBadgeClass}">${status || 'Pending'}</span>
+                    ${floorBadge(floor)}
+                </div>
+                <div class="list-item-meta">
+                    ${desc ? desc + '<br>' : ''}
+                    ${contractor ? `Contractor: ${contractor}` : ''}${phone ? ` · ${phone}` : ''}${contractor || phone ? '<br>' : ''}
+                    ${quote ? `Quote: ${quote} · ` : ''}Added: ${date}
+                    ${notes ? '<br>' + notes : ''}
+                </div>
+            </div>`;
+    }
+    list.innerHTML = html || '<div class="empty-state">No projects for this filter.</div>';
+}
+
+// ══════════════════════════════════════════════
+//  MAINTENANCE
+// ══════════════════════════════════════════════
+async function submitMaintenance() {
+    const issue = document.getElementById('maintIssue').value.trim();
+    const floor = document.getElementById('maintFloor').value;
+    if (!issue) { alert('Please describe the issue.'); return; }
+    if (!floor) { alert('Please select a floor.'); return; }
+
+    await postData({
+        action: 'maintenance',
+        floor,
+        date:     new Date().toLocaleDateString('en-US'),
+        issue,
+        location: document.getElementById('maintLocation').value.trim(),
+        fixedBy:  document.getElementById('maintFixedBy').value.trim(),
+        cost:     document.getElementById('maintCost').value.trim(),
+        notes:    document.getElementById('maintNotes').value.trim(),
+        status:   document.getElementById('maintStatus').value
+    });
+
+    showToast('Maintenance entry saved!');
+    clearForm(['maintIssue','maintLocation','maintFixedBy','maintCost','maintNotes']);
+    document.getElementById('maintStatus').value = 'Needs Attention';
+    document.getElementById('maintFloor').value = '';
+    document.getElementById('maintFloorRow').querySelectorAll('.floor-pill').forEach(p => {
+        p.classList.remove('selected-upstairs','selected-downstairs','selected-both');
+    });
+    toggleForm('maintenanceForm', document.getElementById('maintToggleBtn'), '+ Log Maintenance Issue');
+    loadMaintenance();
+}
+
+function renderMaintenance(rows) {
+    cachedData.maint = rows;
+    const list = document.getElementById('maintenanceList');
+    if (!rows || rows.length <= 1) { list.innerHTML = '<div class="empty-state">No maintenance entries yet.</div>'; return; }
+    const filter = activeFilters.maint;
+    let html = '';
+    for (let i = 1; i < rows.length; i++) {
+        const [date, floor, issue, location, fixedBy, cost, notes, status] = rows[i];
+        if (!issue) continue;
+        if (filter !== 'All' && floor !== filter) continue;
+        const statusBadgeClass = status === 'Resolved' ? 'badge-resolved' : status === 'In Progress' ? 'badge-inprogress' : 'badge-needs';
+        const borderColor = status === 'Resolved' ? '#2e8b57' : status === 'In Progress' ? '#1a6b8a' : '#c0392b';
+        html += `
+            <div class="list-item" style="border-left-color:${borderColor}">
+                <div class="list-item-title">
+                    ${issue}
+                    <span class="badge ${statusBadgeClass}">${status || 'Needs Attention'}</span>
+                    ${floorBadge(floor)}
+                </div>
+                <div class="list-item-meta">
+                    ${location ? 'Location: ' + location + '<br>' : ''}
+                    ${fixedBy ? 'Fixed by: ' + fixedBy + (cost ? ' · Cost: ' + cost : '') + '<br>' : ''}
+                    ${date}${notes ? '<br>' + notes : ''}
+                </div>
+            </div>`;
+    }
+    list.innerHTML = html || '<div class="empty-state">No entries for this filter.</div>';
+}
+
+// ══════════════════════════════════════════════
+//  CONTACTS
+// ══════════════════════════════════════════════
+async function submitContact() {
+    const name  = document.getElementById('contactName').value.trim();
+    const floor = document.getElementById('contactFloor').value;
+    if (!name)  { alert('Please enter a name.'); return; }
+    if (!floor) { alert('Please select a floor.'); return; }
+
+    await postData({
+        action: 'contact',
+        floor,
+        name,
+        role:  document.getElementById('contactRole').value.trim(),
+        phone: document.getElementById('contactPhone').value.trim(),
+        email: document.getElementById('contactEmail').value.trim(),
+        notes: document.getElementById('contactNotes').value.trim()
+    });
+
+    showToast('Contact saved!');
+    clearForm(['contactName','contactRole','contactPhone','contactEmail','contactNotes']);
+    document.getElementById('contactFloor').value = '';
+    document.getElementById('contactFloorRow').querySelectorAll('.floor-pill').forEach(p => {
+        p.classList.remove('selected-upstairs','selected-downstairs','selected-both');
+    });
+    toggleForm('contactForm', document.getElementById('contactToggleBtn'), '+ Add Contact');
+    loadContacts();
+}
+
+function renderContacts(rows) {
+    cachedData.contact = rows;
+    const list = document.getElementById('contactList');
+    if (!rows || rows.length <= 1) { list.innerHTML = '<div class="empty-state">No contacts yet.</div>'; return; }
+    const filter = activeFilters.contact;
+    let html = '';
+    for (let i = 1; i < rows.length; i++) {
+        const [name, floor, role, phone, email, notes] = rows[i];
+        if (!name) continue;
+        if (filter !== 'All' && floor !== filter) continue;
+        const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+        html += `
+            <div class="contact-card">
+                <div class="contact-icon">${initials}</div>
+                <div style="flex:1">
+                    <div class="contact-name">${name} ${floorBadge(floor)}</div>
+                    <div class="contact-role">${role || ''}</div>
+                    <div class="contact-links">
+                        ${phone ? `<a href="tel:${phone}" class="contact-link">📞 ${phone}</a>` : ''}
+                        ${email ? `<a href="mailto:${email}" class="contact-link">✉️ ${email}</a>` : ''}
+                    </div>
+                    ${notes ? `<div style="font-size:12px;color:#888;margin-top:4px">${notes}</div>` : ''}
+                </div>
+            </div>`;
+    }
+    list.innerHTML = html || '<div class="empty-state">No contacts for this filter.</div>';
+}
+
+// ══════════════════════════════════════════════
+//  DATA LOADING
+// ══════════════════════════════════════════════
+function loadAllData() {
+    loadChecklist();
+    loadProjects();
+    loadMaintenance();
+    loadContacts();
+}
+
+async function fetchSheet(tabName) {
+    const sheetId = getSheetId();
+    if (!sheetId) return null;
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+    try {
+        const res = await fetch(url);
+        return parseCSV(await res.text());
+    } catch (e) { console.error('Sheet fetch error:', e); return null; }
+}
+
+function parseCSV(text) {
+    return text.split('\n').map(row => {
+        const result = [];
+        let inQuotes = false, cell = '';
+        for (let ch of row) {
+            if (ch === '"') { inQuotes = !inQuotes; }
+            else if (ch === ',' && !inQuotes) { result.push(cell.trim()); cell = ''; }
+            else { cell += ch; }
+        }
+        result.push(cell.trim());
+        return result;
+    });
+}
+
+async function loadProjects()    { renderProjects(await fetchSheet('Projects')); }
+async function loadMaintenance() { renderMaintenance(await fetchSheet('Maintenance')); }
+async function loadContacts()    { renderContacts(await fetchSheet('Contacts')); }
+
+// ══════════════════════════════════════════════
+//  POST DATA
+// ══════════════════════════════════════════════
+async function postData(payload) {
+    const url = getScriptUrl();
+    if (!url) return;
+    try {
+        await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+    } catch (e) { console.error('Post error:', e); }
+}
+
+// ══════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════
+function openShareModal() {
+    document.getElementById('shareEmail').value = '';
+    document.getElementById('shareModal').classList.add('open');
+}
+function closeShareModal() {
+    document.getElementById('shareModal').classList.remove('open');
+}
+function sendSheetLink() {
+    const email = document.getElementById('shareEmail').value.trim();
+    if (!email) { alert('Please enter an email address.'); return; }
+    const sheetId = getSheetId();
+    const sheetUrl = sheetId ? `https://docs.google.com/spreadsheets/d/${sheetId}/edit` : '(Sheet link not set up yet)';
+    const subject = encodeURIComponent('Beach House Spreadsheet');
+    const body = encodeURIComponent(`Here's the link to the Beach House spreadsheet:\n\n${sheetUrl}\n\nYou can view all projects, maintenance history, and contacts here.`);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    closeShareModal();
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function clearForm(ids) {
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
+loadChecklist();
+</script>
+</body>
+</html>
